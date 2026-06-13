@@ -49,15 +49,34 @@ docker build -t app .
 docker run -p 8080:8080 app
 ```
 
-## Wdrożenie — patrz instrukcja krok po kroku poniżej
+## Parametry zasobów Azure
 
-Parametry zasobów Azure:
+Region: **polandcentral** (wymuszony polityką subskrypcji *Azure for Students*).
 
 | Zasób | Nazwa |
 |---|---|
 | Resource group (app) | `rg-lab05` |
 | ACR | `acrlab422374` (`acrlab422374.azurecr.io`) |
-| AKS | `aks-lab05` |
+| AKS | `aks-lab05` (węzeł `Standard_B2s_v2`) |
 | Resource group (state) | `rg-tf-state` |
 | Storage Account (state) | `stlab05tf422374` |
 | Container | `tfstate` |
+| Managed Identity (OIDC) | `id-gha-lab05-422374` |
+
+## Autoryzacja OIDC bez sekretów
+
+GitHub Actions loguje się do Azure przez **Workload Identity Federation** na
+User-Assigned Managed Identity (federated credentials dla `main` i `pull_request`).
+Brak długożyciowych haseł/kluczy service principala — w sekretach repo są wyłącznie
+identyfikatory (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`).
+
+## Sprzątanie (oszczędzanie kredytu)
+
+AKS + LoadBalancer naliczają koszty cały czas. Po zakończeniu pracy:
+
+```bash
+cd infra
+terraform destroy        # usuwa ACR + AKS + role
+# opcjonalnie state i tożsamość:
+az group delete --name rg-tf-state --yes --no-wait
+```
