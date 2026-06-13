@@ -5,7 +5,7 @@ variable "resource_group_name" {
 
 variable "location" {
   type    = string
-  default = "westeurope"
+  default = "polandcentral"
 }
 
 variable "acr_name" {
