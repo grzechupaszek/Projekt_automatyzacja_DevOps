@@ -5,7 +5,7 @@
 set -euo pipefail
 
 # ---- Parametry (dostosuj jeśli trzeba) -------------------------------------
-LOCATION="westeurope"
+LOCATION="polandcentral"
 
 # Remote state
 STATE_RG="rg-tf-state"
