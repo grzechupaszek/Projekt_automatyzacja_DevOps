@@ -3,6 +3,7 @@ from flask import Flask, jsonify
 app = Flask(__name__)
 
 # Autor: Grzegorz Paszek, nr albumu 422374
+# wersja 1.0 — pierwszy automatyczny deployment przez CI/CD
 
 @app.route("/")
 def index():
