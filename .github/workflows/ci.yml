@@ -1,0 +1,59 @@
+name: CI — Build, Test, Push, Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - app/**
+      - Dockerfile
+      - k8s/**
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  ci-cd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ustaw Pythona
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Zainstaluj zależności i uruchom testy
+        working-directory: app
+        run: |
+          pip install -r requirements.txt
+          pytest
+
+      - name: Zaloguj się do Azure (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Zaloguj się do ACR
+        run: az acr login --name ${{ secrets.ACR_LOGIN_SERVER }}
+
+      - name: Zbuduj i wypchnij obraz
+        run: |
+          IMAGE=${{ secrets.ACR_LOGIN_SERVER }}/app:${{ github.sha }}
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+      - name: Pobierz kubeconfig AKS
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ secrets.RESOURCE_GROUP }} \
+            --name ${{ secrets.AKS_NAME }} \
+            --overwrite-existing
+
+      - name: Zaktualizuj obraz w AKS
+        run: |
+          kubectl set image deployment/app \
+            app=${{ secrets.ACR_LOGIN_SERVER }}/app:${{ github.sha }}
+          kubectl rollout status deployment/app --timeout=120s
