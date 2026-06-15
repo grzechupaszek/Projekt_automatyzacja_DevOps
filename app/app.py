@@ -9,7 +9,7 @@ app = Flask(__name__)
 def index():
     return jsonify(
         message="DevOps 2026 — GitOps demo",
-        author="Grzegorz Paszek",
+        author="Grzegorz Wojciech Paszek",
         album="422374",
         status="ok",
     )
